@@ -1,9 +1,9 @@
 import os
 import sys
-import json
 import time
 import signal
 import psutil
+import pickle
 import tempfile
 import pythoncom
 import threading
@@ -17,7 +17,7 @@ from PySide6.QtCore import QTimer, Qt
 
 from w_main import Ui_MainWindow    # pyside6-uic .\watchdog_main.ui -o .\w_main.py
 from ps_dialog import Ui_Dialog     # pyside6-uic .\process_setup.ui -o .\ps_dialog.py
-# pyinstaller -w -F -i ./ico.ico --add-data "ico.ico;." -n WatchDog.exe .\WatchDog_QT.py
+# pyinstaller -w -F -i ./ico.png --add-data "ico.png;." -n WatchDog.exe .\WatchDog_QT.py
 
 # todo: 性能优化, 能否实现进程确认启动完成后再执行下一步操作
 
@@ -39,7 +39,7 @@ config_path = os.path.join(os.path.expanduser("~"), '.watchdog_config')
 version_log = [['v1.1', '正式版'],
                ['v1.2', '修改关闭按钮为缩小而不是退出'],
                ['v1.3', '只能选择可执行文件监测, 可以自己设置开机自启, 配置文件生成在用户目录下, 窗口大小可以拉伸'],
-               ['v1.31', '修复了若干BUG， 优化了用户体验']]
+               ['v1.31', '修复了若干BUG， 优化了用户体验'],['v1.32', '修改配置文件格式, 修改软件图标']]
 
 # WMI控制程序
 class WMI:
@@ -225,10 +225,10 @@ class WatchDogQT:
         # 判断是否是打包后的应用
         if getattr(sys, 'frozen', False):
             # 如果是打包后的应用，从 sys._MEIPASS 获取资源文件路径
-            icon_path = os.path.join(sys._MEIPASS, 'ico.ico')
+            icon_path = os.path.join(sys._MEIPASS, 'ico.png')
         else:
             # 如果是开发环境，直接使用当前目录的图标文件
-            icon_path = 'ico.ico'
+            icon_path = 'ico.png'
 
         self.icon = QIcon(icon_path)
 
@@ -404,20 +404,23 @@ class WatchDogQT:
         cwd = os.getcwd()
         # 如果配置文件不存在, 创建
         if not os.path.exists(config_path):
-            with open(config_path, 'w') as f:
-                f.write(json.dumps(DEFAULT_CONFIG))
+            with open(config_path, 'wb') as f:
+                # f.write(json.dumps(DEFAULT_CONFIG))
+                pickle.dump(DEFAULT_CONFIG, f)
 
     # 设置_读取本地配置文件
     def load_config(self):
         self.init_config()
-        with open(config_path, 'r') as f:
-            self.config = json.loads(f.read())
+        with open(config_path, 'rb') as f:
+            # self.config = json.loads(f.read())
+            self.config = pickle.load(f)
 
     # 设置_保存配置到本地
     def save_config(self):
         self.init_config()
-        with open(config_path, 'w') as f:
-            f.write(json.dumps(self.config, indent=4))
+        with open(config_path, 'wb') as f:
+            # f.write(json.dumps(self.config, indent=4))
+            pickle.dump(self.config, f)
         self.show_message("保存成功")
 
     # 设置_自动隐藏复选框
