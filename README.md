@@ -1,4 +1,4 @@
-可用于win的看门狗<br>
+可用于win的看门狗, 使用PySide6+Python开发<br>
 可以视化配置<br>
 一键设置开机自启<br>
 ![image](https://github.com/user-attachments/assets/2be3e3c6-09d0-4db8-8058-1adf8ae639d5)
