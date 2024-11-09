@@ -405,21 +405,24 @@ class WatchDogQT:
         # 如果配置文件不存在, 创建
         if not os.path.exists(config_path):
             with open(config_path, 'wb') as f:
-                # f.write(json.dumps(DEFAULT_CONFIG))
                 pickle.dump(DEFAULT_CONFIG, f)
 
     # 设置_读取本地配置文件
     def load_config(self):
         self.init_config()
-        with open(config_path, 'rb') as f:
-            # self.config = json.loads(f.read())
-            self.config = pickle.load(f)
+        try:
+            with open(config_path, 'rb') as f:
+                self.config = pickle.load(f)
+        except:
+            os.remove(config_path)
+            self.init_config()
+            with open(config_path, 'rb') as f:
+                self.config = pickle.load(f)
 
     # 设置_保存配置到本地
     def save_config(self):
         self.init_config()
         with open(config_path, 'wb') as f:
-            # f.write(json.dumps(self.config, indent=4))
             pickle.dump(self.config, f)
         self.show_message("保存成功")
 
