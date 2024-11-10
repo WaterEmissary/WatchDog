@@ -19,7 +19,7 @@ from w_main import Ui_MainWindow    # pyside6-uic .\watchdog_main.ui -o .\w_main
 from ps_dialog import Ui_Dialog     # pyside6-uic .\process_setup.ui -o .\ps_dialog.py
 # pyinstaller -w -F -i ./ico.png --add-data "ico.png;." -n WatchDog.exe .\WatchDog_QT.py
 
-# todo: 性能优化, 能否实现进程确认启动完成后再执行下一步操作
+# todo:
 
 DEFAULT_CONFIG = {
     'AUTO_HIDDEN': False,
@@ -39,7 +39,8 @@ config_path = os.path.join(os.path.expanduser("~"), '.watchdog_config')
 version_log = [['v1.1', '正式版'],
                ['v1.2', '修改关闭按钮为缩小而不是退出'],
                ['v1.3', '只能选择可执行文件监测, 可以自己设置开机自启, 配置文件生成在用户目录下, 窗口大小可以拉伸'],
-               ['v1.31', '修复了若干BUG， 优化了用户体验'],['v1.32', '修改配置文件格式, 修改软件图标']]
+               ['v1.31', '修复了若干BUG， 优化了用户体验'],['v1.32', '修改配置文件格式, 修改软件图标'],
+               ['v1.4', '添加了浏览功能，一键跳转到软件目录']]
 
 # WMI控制程序
 class WMI:
@@ -322,6 +323,7 @@ class WatchDogQT:
         self.ui.SwitchButton.clicked.connect(self.switch_selected_process)
         self.ui.RemoveButton.clicked.connect(self.remove_listening_process)
         self.ui.RestartButton.clicked.connect(self.restart_selected_process)
+        self.ui.BrowseButton.clicked.connect(self.browse_selected_process)
         self.ui.ProcessSetupButton.clicked.connect(self.setup_selected_process)
 
         # 添加菜单Action
@@ -444,6 +446,7 @@ class WatchDogQT:
         self.ui.RemoveButton.setEnabled(False)
         self.ui.SwitchButton.setEnabled(False)
         self.ui.RestartButton.setEnabled(False)
+        self.ui.BrowseButton.setEnabled(False)
         self.ui.ProcessSetupButton.setEnabled(False)
 
     # QT_改变进程按钮的内容状态
@@ -462,6 +465,7 @@ class WatchDogQT:
             self.ui.SwitchButton.setText("启动")
         self.ui.SwitchButton.setEnabled(True)
         self.ui.RestartButton.setEnabled(True)
+        self.ui.BrowseButton.setEnabled(True)
         self.ui.ProcessSetupButton.setEnabled(True)
     # QT_获取颜色
     @staticmethod
@@ -739,6 +743,11 @@ class WatchDogQT:
     def restart_selected_process(self):
         process = self.get_process_by_selected()
         self.wmi.restart_process(process)
+
+    # QT_打开进程的目录
+    def browse_selected_process(self):
+        process = self.get_process_by_selected()
+        os.startfile(os.path.dirname(process.get('exe_path')))
 
     # QT_设置选中监听项
     def setup_selected_process(self):

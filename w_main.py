@@ -122,6 +122,11 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.RestartButton)
 
+        self.BrowseButton = QPushButton(self.MainPage)
+        self.BrowseButton.setObjectName(u"BrowseButton")
+
+        self.horizontalLayout.addWidget(self.BrowseButton)
+
         self.ProcessSetupButton = QPushButton(self.MainPage)
         self.ProcessSetupButton.setObjectName(u"ProcessSetupButton")
 
@@ -131,7 +136,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setStretch(4, 1)
         self.horizontalLayout.setStretch(6, 1)
         self.horizontalLayout.setStretch(7, 1)
-        self.horizontalLayout.setStretch(8, 1)
+        self.horizontalLayout.setStretch(9, 1)
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
@@ -317,6 +322,7 @@ class Ui_MainWindow(object):
         self.RemoveButton.setText(QCoreApplication.translate("MainWindow", u"\u79fb\u9664", None))
         self.SwitchButton.setText(QCoreApplication.translate("MainWindow", u"\u542f\u52a8/\u505c\u6b62", None))
         self.RestartButton.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u542f", None))
+        self.BrowseButton.setText(QCoreApplication.translate("MainWindow", u"\u6d4f\u89c8", None))
         self.ProcessSetupButton.setText(QCoreApplication.translate("MainWindow", u"\u8bbe\u7f6e", None))
         self.show_version_label.setText(QCoreApplication.translate("MainWindow", u"\u5f53\u524d\u7248\u672c: ", None))
         self.autoStartUpCheckBox.setText(QCoreApplication.translate("MainWindow", u"\u5f00\u673a\u81ea\u52a8\u542f\u52a8", None))

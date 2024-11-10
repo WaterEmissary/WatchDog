@@ -118,7 +118,7 @@
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,10,1,0,1,1,1">
+           <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,10,1,0,1,1,0,1">
             <item>
              <widget class="QLabel" name="CPUusageLabel">
               <property name="text">
@@ -184,6 +184,13 @@
              <widget class="QPushButton" name="RestartButton">
               <property name="text">
                <string>重启</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="BrowseButton">
+              <property name="text">
+               <string>浏览</string>
               </property>
              </widget>
             </item>
