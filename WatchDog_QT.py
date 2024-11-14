@@ -40,7 +40,7 @@ version_log = [['v1.1', '正式版'],
                ['v1.2', '修改关闭按钮为缩小而不是退出'],
                ['v1.3', '只能选择可执行文件监测, 可以自己设置开机自启, 配置文件生成在用户目录下, 窗口大小可以拉伸'],
                ['v1.31', '修复了若干BUG， 优化了用户体验'],['v1.32', '修改配置文件格式, 修改软件图标'],
-               ['v1.4', '添加了浏览功能，一键跳转到软件目录']]
+               ['v1.4', '添加了浏览功能，一键跳转到软件目录'], ['v1.41', '修改浏览为打开工作目录']]
 
 # WMI控制程序
 class WMI:
@@ -165,7 +165,7 @@ class WMI:
         def thread_run():
             self.execution = True
             self._stop_process(process)
-            time.sleep(3)
+            time.sleep(1.5)
             self._start_process(process)
             time.sleep(3)
             self.execution = False
@@ -747,7 +747,7 @@ class WatchDogQT:
     # QT_打开进程的目录
     def browse_selected_process(self):
         process = self.get_process_by_selected()
-        os.startfile(os.path.dirname(process.get('exe_path')))
+        os.startfile(process.get('work_dir'))
 
     # QT_设置选中监听项
     def setup_selected_process(self):
