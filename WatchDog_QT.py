@@ -11,7 +11,7 @@ import subprocess
 import win32com.client
 from datetime import datetime
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QDialog, QTableWidgetItem, QFileDialog, QSystemTrayIcon, QMenu, QHeaderView
+from PySide6.QtWidgets import QApplication, QMainWindow, QDialog, QTableWidgetItem, QFileDialog, QSystemTrayIcon, QMenu, QHeaderView, QMessageBox
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtCore import QTimer, Qt
 
@@ -40,7 +40,8 @@ version_log = [['v1.1', '正式版'],
                ['v1.2', '修改关闭按钮为缩小而不是退出'],
                ['v1.3', '只能选择可执行文件监测, 可以自己设置开机自启, 配置文件生成在用户目录下, 窗口大小可以拉伸'],
                ['v1.31', '修复了若干BUG， 优化了用户体验'],['v1.32', '修改配置文件格式, 修改软件图标'],
-               ['v1.4', '添加了浏览功能，一键跳转到软件目录'], ['v1.41', '修改浏览为打开工作目录']]
+               ['v1.4', '添加了浏览功能，一键跳转到软件目录'], ['v1.41', '修改浏览为打开工作目录'],
+               ['v1.5', '添加了移除前询问功能']]
 
 # WMI控制程序
 class WMI:
@@ -718,9 +719,23 @@ class WatchDogQT:
     def remove_listening_process(self):
         row = self.get_selected_row()
         listening = self.get_config_listening()
-        self.config['LISTENING'].pop(list(listening.keys())[row])
-        self.save_config()
-        self.create_table_row()
+
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle("移除监听项")
+        msg_box.setText(f"你确定要移除 {listening.get(list(listening.keys())[0]).get('other_name')} 吗")
+        msg_box.setIcon(QMessageBox.Question)
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+        # 显示对话框并获取用户选择
+        user_choice = msg_box.exec()
+
+        # 根据用户选择执行操作
+        if user_choice == QMessageBox.Yes:
+            self.config['LISTENING'].pop(list(listening.keys())[row])
+            self.save_config()
+            self.create_table_row()
+        elif user_choice == QMessageBox.No:
+            pass
 
     # QT_启用/禁用选中进程的监听
     def switch_selected_listening_process(self):
