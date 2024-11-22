@@ -26,7 +26,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(660, 300)
+        MainWindow.resize(698, 335)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -49,9 +49,9 @@ class Ui_MainWindow(object):
         self.MainPage.setObjectName(u"MainPage")
         sizePolicy.setHeightForWidth(self.MainPage.sizePolicy().hasHeightForWidth())
         self.MainPage.setSizePolicy(sizePolicy)
-        self.horizontalLayout_9 = QHBoxLayout(self.MainPage)
-        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
-        self.horizontalLayout_9.setContentsMargins(6, 3, 6, 6)
+        self.verticalLayout_2 = QVBoxLayout(self.MainPage)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_2.setContentsMargins(6, 3, 6, 6)
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setSpacing(3)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -141,18 +141,16 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout)
 
 
-        self.horizontalLayout_9.addLayout(self.verticalLayout)
+        self.verticalLayout_2.addLayout(self.verticalLayout)
 
         self.stackedWidget.addWidget(self.MainPage)
         self.FullSetupPage = QWidget()
         self.FullSetupPage.setObjectName(u"FullSetupPage")
         sizePolicy.setHeightForWidth(self.FullSetupPage.sizePolicy().hasHeightForWidth())
         self.FullSetupPage.setSizePolicy(sizePolicy)
-        self.horizontalLayout_10 = QHBoxLayout(self.FullSetupPage)
-        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
-        self.verticalLayout_2 = QVBoxLayout()
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.verticalLayout_2.setContentsMargins(20, 10, 20, 20)
+        self.verticalLayout_3 = QVBoxLayout(self.FullSetupPage)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.verticalLayout_3.setContentsMargins(30, 30, 30, 30)
         self.horizontalLayout_6 = QHBoxLayout()
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
         self.show_version_label = QLabel(self.FullSetupPage)
@@ -171,7 +169,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_6.setStretch(0, 5)
         self.horizontalLayout_6.setStretch(1, 5)
 
-        self.verticalLayout_2.addLayout(self.horizontalLayout_6)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_6)
 
         self.horizontalLayout_7 = QHBoxLayout()
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
@@ -185,7 +183,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.addItem(self.horizontalSpacer_7)
 
 
-        self.verticalLayout_2.addLayout(self.horizontalLayout_7)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_7)
 
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
@@ -199,7 +197,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.addItem(self.horizontalSpacer_3)
 
 
-        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_3)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setSpacing(6)
@@ -222,7 +220,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.setStretch(1, 1)
         self.horizontalLayout_2.setStretch(2, 4)
 
-        self.verticalLayout_2.addLayout(self.horizontalLayout_2)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_2)
 
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
@@ -249,11 +247,33 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.setStretch(1, 3)
         self.horizontalLayout_5.setStretch(3, 9)
 
-        self.verticalLayout_2.addLayout(self.horizontalLayout_5)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_5)
 
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.horizontalLayout_10 = QHBoxLayout()
+        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
+        self.label_4 = QLabel(self.FullSetupPage)
+        self.label_4.setObjectName(u"label_4")
 
-        self.verticalLayout_2.addItem(self.verticalSpacer)
+        self.horizontalLayout_10.addWidget(self.label_4)
+
+        self.FullSetupReopenComboBox = QComboBox(self.FullSetupPage)
+        self.FullSetupReopenComboBox.setObjectName(u"FullSetupReopenComboBox")
+
+        self.horizontalLayout_10.addWidget(self.FullSetupReopenComboBox)
+
+        self.horizontalSpacer_8 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_10.addItem(self.horizontalSpacer_8)
+
+        self.horizontalLayout_10.setStretch(0, 1)
+        self.horizontalLayout_10.setStretch(1, 1)
+        self.horizontalLayout_10.setStretch(2, 4)
+
+        self.verticalLayout_3.addLayout(self.horizontalLayout_10)
+
+        self.verticalSpacer = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.verticalLayout_3.addItem(self.verticalSpacer)
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
@@ -272,10 +292,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.FullSetupBackMainButton)
 
 
-        self.verticalLayout_2.addLayout(self.horizontalLayout_4)
-
-
-        self.horizontalLayout_10.addLayout(self.verticalLayout_2)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_4)
 
         self.stackedWidget.addWidget(self.FullSetupPage)
 
@@ -287,12 +304,12 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 660, 22))
+        self.menubar.setGeometry(QRect(0, 0, 698, 22))
         MainWindow.setMenuBar(self.menubar)
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -330,6 +347,7 @@ class Ui_MainWindow(object):
         self.label.setText(QCoreApplication.translate("MainWindow", u"\u5168\u5c40\u5185\u5b58\u5355\u4f4d", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u5237\u65b0\u65f6\u95f4\u95f4\u9694(\u79d2)", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u542f\u540e\u751f\u6548", None))
+        self.label_4.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u590d\u542f\u52a8\u770b\u95e8\u72d7", None))
         self.FullSetupSaveButton.setText(QCoreApplication.translate("MainWindow", u"\u4fdd\u5b58", None))
         self.FullSetupBackMainButton.setText(QCoreApplication.translate("MainWindow", u"\u8fd4\u56de\u4e3b\u754c\u9762", None))
     # retranslateUi

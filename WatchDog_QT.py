@@ -11,7 +11,8 @@ import subprocess
 import win32com.client
 from datetime import datetime
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QDialog, QTableWidgetItem, QFileDialog, QSystemTrayIcon, QMenu, QHeaderView, QMessageBox
+from PySide6.QtWidgets import QApplication, QMainWindow, QDialog, QTableWidgetItem, QFileDialog, QSystemTrayIcon, QMenu, \
+    QHeaderView, QMessageBox, QLabel, QWidgetAction
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtCore import QTimer, Qt
 
@@ -19,18 +20,20 @@ from w_main import Ui_MainWindow    # pyside6-uic .\watchdog_main.ui -o .\w_main
 from ps_dialog import Ui_Dialog     # pyside6-uic .\process_setup.ui -o .\ps_dialog.py
 # pyinstaller -w -F -i ./ico.png --add-data "ico.png;." -n WatchDog.exe .\WatchDog_QT.py
 
-# todo:
+# todo: 添加重复启动选项、添加右键菜单
 
 DEFAULT_CONFIG = {
     'AUTO_HIDDEN': False,
     'MEM_UNIT': 0,
     'FLUSH_TIME': 0.5,
-    'LISTENING': {}
+    'LISTENING': {},
+    'REOPEN_OPT': 0
 }
 MEM_UNIT_LIST = ['MB', 'GB']
+REOPEN_LIST = ['无操作', '重启软件']
 # 临时文件锁路径
 temp_file_path = os.path.join(tempfile.gettempdir(), ".mydog")
-print(temp_file_path)
+
 # 获取启动文件夹路径，并定义快捷方式文件的路径
 startup_path = os.path.join(os.getenv("APPDATA"), r"Microsoft\Windows\Start Menu\Programs\Startup", "WatchDog.lnk")
 # 配置文件路径
@@ -41,7 +44,7 @@ version_log = [['v1.1', '正式版'],
                ['v1.3', '只能选择可执行文件监测, 可以自己设置开机自启, 配置文件生成在用户目录下, 窗口大小可以拉伸'],
                ['v1.31', '修复了若干BUG， 优化了用户体验'],['v1.32', '修改配置文件格式, 修改软件图标'],
                ['v1.4', '添加了浏览功能，一键跳转到软件目录'], ['v1.41', '修改浏览为打开工作目录'],
-               ['v1.5', '添加了移除前询问功能']]
+               ['v1.5', '添加了移除前询问功能'], ['v1.6', "添加重复打开相关功能, 添加单进程右键菜单"]]
 
 # WMI控制程序
 class WMI:
@@ -314,6 +317,9 @@ class WatchDogQT:
         self.ui.WatchDogList.setSelectionMode(self.ui.WatchDogList.SelectionMode.SingleSelection)   # 设置单选
         self.ui.WatchDogList.setSelectionBehavior(self.ui.WatchDogList.SelectionBehavior.SelectRows)    # 设置选一行
         self.ui.WatchDogList.currentItemChanged.connect(self.table_row_select)
+        self.ui.WatchDogList.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)   # 设置可以右键
+        self.ui.WatchDogList.customContextMenuRequested.connect(self.show_watchdog_list_menu)
+
 
         self.ui.SystemUsageStateLabel.setStyleSheet("""color: #4A90E2;""")
 
@@ -340,6 +346,7 @@ class WatchDogQT:
         self.ui.show_version_label.setStyleSheet("""color: #888888""")
         self.ui.autoStartUpCheckBox.setChecked(self.AUTO_START)
         self.ui.FullSetupMemComboBox.addItems(MEM_UNIT_LIST)
+        self.ui.FullSetupReopenComboBox.addItems(REOPEN_LIST)
         self.ui.FullSetupFlushSpin.setDecimals(1)
         self.ui.FullSetupFlushSpin.setSingleStep(0.1)
         self.ui.FullSetupFlushSpin.setRange(0.5, 5)
@@ -348,12 +355,14 @@ class WatchDogQT:
         self.ui.autoStartUpCheckBox.stateChanged.connect(self.switch_start_up)
         self.ui.FullSetup_HiddenButton.toggled.connect(self.setup_auto_hidden_checkbox)
         self.ui.FullSetupMemComboBox.currentIndexChanged.connect(self.setup_switch_mem_unit)
+        self.ui.FullSetupReopenComboBox.currentIndexChanged.connect(self.setup_switch_reopen)
         self.ui.FullSetupFlushSpin.valueChanged.connect(self.setup_flush_spin)
         self.ui.FullSetupSaveButton.clicked.connect(self.save_config)
         self.ui.FullSetupBackMainButton.clicked.connect(lambda : self.switch_page(0))
 
     # 功能初始化
     def function_init(self):
+        self.auto_check_config()
         # 读取配置
         self.load_config()
         # 初始化表格
@@ -410,6 +419,21 @@ class WatchDogQT:
             with open(config_path, 'wb') as f:
                 pickle.dump(DEFAULT_CONFIG, f)
 
+    # 设置_自检配置文件
+    def auto_check_config(self):
+        with open(config_path, 'rb') as f:
+            self.config = pickle.load(f)
+        flag = False
+        for k, v in DEFAULT_CONFIG.items():
+            if k in self.config.keys():
+                pass
+            else:
+                flag = True
+                self.config[k] = v
+        if flag:
+            self.save_config()
+
+
     # 设置_读取本地配置文件
     def load_config(self):
         self.init_config()
@@ -436,6 +460,10 @@ class WatchDogQT:
     # 设置_更换内存全局单位
     def setup_switch_mem_unit(self, index):
         self.config['MEM_UNIT'] = index
+
+    # 设置_更换启动选项
+    def setup_switch_reopen(self, index):
+        self.config['REOPEN_OPT'] = index
 
     # 设置_刷新时间间隔
     def setup_flush_spin(self, value):
@@ -591,6 +619,7 @@ class WatchDogQT:
             self.ui.autoStartUpCheckBox.setChecked(self.AUTO_START)
             self.ui.FullSetup_HiddenButton.setChecked(self.config.get('AUTO_HIDDEN'))
             self.ui.FullSetupMemComboBox.setCurrentIndex(self.config.get('MEM_UNIT'))
+            self.ui.FullSetupReopenComboBox.setCurrentIndex(self.config.get('REOPEN_OPT'))
             self.ui.FullSetupFlushSpin.setValue(self.config.get('FLUSH_TIME'))
         self.ui.stackedWidget.setCurrentIndex(page)
 
@@ -715,6 +744,39 @@ class WatchDogQT:
         self.dialog_ui.CancelButton.clicked.connect(lambda: close_dialog(self))
         self.dialog.exec()
 
+    # QT_列表选中右键菜单
+    def show_watchdog_list_menu(self, pos):
+        item = self.ui.WatchDogList.itemAt(pos)
+        process = self.get_process_by_selected()
+        if item:
+            menu = QMenu(self.ui.WatchDogList)
+            label = QLabel(process.get('other_name'))
+            label.setStyleSheet("font-weight: bold; margin: 5px;margin-left: 20px")  # 设置样式
+            label_action = QWidgetAction(menu)
+            label_action.setDefaultWidget(label)
+            menu.addAction(label_action)
+            menu.addSeparator()
+            use = menu.addAction("启用看门狗")
+            remove = menu.addAction("移除")
+            switch = menu.addAction("停止" if process.get('run_status') else "启动")
+            restart = menu.addAction("重启")
+            browse = menu.addAction("浏览")
+            setup = menu.addAction("设置")
+            action = menu.exec(self.ui.WatchDogList.mapToGlobal(pos))  # 显示菜单
+
+            if action == use:
+                self.switch_selected_listening_process()
+            elif action == remove:
+                self.remove_listening_process()
+            elif action == switch:
+                self.switch_selected_process()
+            elif action == restart:
+                self.restart_selected_process()
+            elif action == browse:
+                self.browse_selected_process()
+            elif action == setup:
+                self.setup_selected_process()
+
     # QT_移除选中监听项
     def remove_listening_process(self):
         row = self.get_selected_row()
@@ -769,17 +831,45 @@ class WatchDogQT:
         process = self.get_process_by_selected()
         self.create_dialog(opt='edit', process=process)
 
+def kill_process_by_name(process_name):
+    """通过进程名称结束进程"""
+    current_pid = os.getpid()  # 获取当前进程 ID
+    for proc in psutil.process_iter(attrs=['pid', 'name']):
+        try:
+            # 检查进程名是否匹配
+            if proc.info['name'] == process_name and proc.info["pid"] != current_pid:
+                print(f"正在终止进程: {proc.info['name']} (PID: {proc.info['pid']})")
+                os.kill(int(proc.info['pid']), signal.SIGTERM)
+                print(f"进程 {proc.info['name']} 已终止")
+
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+    print(f"未找到名为 {process_name} 的进程")
+    return False
+
+
 if __name__ == '__main__':
     if os.path.exists(temp_file_path):
-        try:
+        try:    # 如果文件存在, 尝试删除, 删除成功则说明软件未运行, 启动
             fd = os.open(temp_file_path, os.O_RDWR | os.O_EXCL)
             os.close(fd)    # 文件未被占用, 移除
             os.remove(temp_file_path)
             time.sleep(1)
             wd = WatchDogQT()
             sys.exit(wd.app.exec())
-        except:
-            pass
+        except: # 如果删除失败, 则说明软件运行中, 需要判断是否重启
+            with open(config_path, 'rb') as f:
+                config = pickle.load(f)
+            if config.get('REOPEN_OPT') == 0:   # 无操作
+                pass
+            elif config.get('REOPEN_OPT') == 1: # 重启
+                process_name = "WatchDog.exe"  # 需要杀掉的进程名
+                # 杀掉进程
+                kill_process_by_name(process_name)
+                time.sleep(1)  # 等待一段时间确保资源释放
+
+                wd = WatchDogQT()
+                sys.exit(wd.app.exec())
     else:
         wd = WatchDogQT()
         sys.exit(wd.app.exec())
