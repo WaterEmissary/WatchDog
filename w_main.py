@@ -102,6 +102,10 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
+        self.horizontalSpacer_10 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout.addItem(self.horizontalSpacer_10)
+
         self.UseButton = QPushButton(self.MainPage)
         self.UseButton.setObjectName(u"UseButton")
 
@@ -111,6 +115,10 @@ class Ui_MainWindow(object):
         self.RemoveButton.setObjectName(u"RemoveButton")
 
         self.horizontalLayout.addWidget(self.RemoveButton)
+
+        self.horizontalSpacer_9 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout.addItem(self.horizontalSpacer_9)
 
         self.SwitchButton = QPushButton(self.MainPage)
         self.SwitchButton.setObjectName(u"SwitchButton")
@@ -133,10 +141,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.ProcessSetupButton)
 
         self.horizontalLayout.setStretch(3, 10)
-        self.horizontalLayout.setStretch(4, 1)
-        self.horizontalLayout.setStretch(6, 1)
-        self.horizontalLayout.setStretch(7, 1)
+        self.horizontalLayout.setStretch(5, 1)
+        self.horizontalLayout.setStretch(8, 1)
         self.horizontalLayout.setStretch(9, 1)
+        self.horizontalLayout.setStretch(11, 1)
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
@@ -309,7 +317,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)

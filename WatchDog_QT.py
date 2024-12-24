@@ -44,7 +44,8 @@ version_log = [['v1.1', '正式版'],
                ['v1.3', '只能选择可执行文件监测, 可以自己设置开机自启, 配置文件生成在用户目录下, 窗口大小可以拉伸'],
                ['v1.31', '修复了若干BUG， 优化了用户体验'],['v1.32', '修改配置文件格式, 修改软件图标'],
                ['v1.4', '添加了浏览功能，一键跳转到软件目录'], ['v1.41', '修改浏览为打开工作目录'],
-               ['v1.5', '添加了移除前询问功能'], ['v1.6', "添加重复打开相关功能, 添加单进程右键菜单"]]
+               ['v1.5', '添加了移除前询问功能'], ['v1.6', "添加重复打开相关功能, 添加单进程右键菜单"],
+               ['v1.7', '修复了在某些情况下无法正常拉起进程的bug']]
 
 # WMI控制程序
 class WMI:
@@ -198,8 +199,6 @@ class WatchDogQT:
         # self.win.setFixedSize(640, 330)
         self.win.setWindowTitle('WatchDog')
         self.win.setWindowIcon(self.icon)
-
-        self.watch_doc_count = 0
 
         self.config = {}
         self.process_list = []
@@ -467,7 +466,7 @@ class WatchDogQT:
 
     # 设置_刷新时间间隔
     def setup_flush_spin(self, value):
-        self.config['FLUSH_TIME'] = int(value)
+        self.config['FLUSH_TIME'] = float(value)
 
     # QT_禁用所有进程按钮
     def disabled_process_button(self):
@@ -546,17 +545,13 @@ class WatchDogQT:
                 process['run_status'] = True
                 process.update(self.wmi.optimize_process_data(name, self.config.get('MEM_UNIT')))
 
-            # 看门狗任务每2倍刷新时间执行一次
-            if self.watch_doc_count == 0:
-                self.watch_doc_count += 1
-            else:
-                if process.get('use_listen') and self.wmi.execution is False:   # 如果进程启用监听状态, 并且不在执行状态
-                    if self.wmi.processes_dict: # 至少已经检查完一次进程状态
-                        if process.get('run_status'):   # 如果进程在运行, 不做任何操作
-                            pass
-                        else:   # 进程不存在, 启动
-                            self.wmi.start_process(process)
-                self.watch_doc_count = 0
+            if process.get('use_listen') and self.wmi.execution is False:  # 如果进程启用监听状态, 并且不在执行状态
+                if self.wmi.processes_dict:  # 至少已经检查完一次进程状态
+                    if process.get('run_status'):  # 如果进程在运行, 不做任何操作
+                        pass
+                    else:  # 进程不存在, 启动
+                        self.wmi.start_process(process)
+                        time.sleep(1)
 
             self.process_list.append(process)
             self.update_table_row(process)
