@@ -20,7 +20,7 @@ from w_main import Ui_MainWindow    # pyside6-uic .\watchdog_main.ui -o .\w_main
 from ps_dialog import Ui_Dialog     # pyside6-uic .\process_setup.ui -o .\ps_dialog.py
 # pyinstaller -w -F -i ./ico.png --add-data "ico.png;." -n WatchDog.exe .\WatchDog_QT.py
 
-# todo: 添加重复启动选项、添加右键菜单
+# todo:
 
 DEFAULT_CONFIG = {
     'AUTO_HIDDEN': False,
@@ -45,7 +45,8 @@ version_log = [['v1.1', '正式版'],
                ['v1.31', '修复了若干BUG， 优化了用户体验'],['v1.32', '修改配置文件格式, 修改软件图标'],
                ['v1.4', '添加了浏览功能，一键跳转到软件目录'], ['v1.41', '修改浏览为打开工作目录'],
                ['v1.5', '添加了移除前询问功能'], ['v1.6', "添加重复打开相关功能, 添加单进程右键菜单"],
-               ['v1.7', '修复了在某些情况下无法正常拉起进程的bug']]
+               ['v1.7', '修复了在某些情况下无法正常拉起进程的bug'],
+               ['v1.8', '添加了排序功能, 添加了自动创建启动脚本功能']]
 
 # WMI控制程序
 class WMI:
@@ -276,6 +277,15 @@ class WatchDogQT:
         except Exception as e:
             self.show_message(f"开机自启设置失败{str(e)}", level='alarm')
 
+    # 创建开机计划任务脚本
+    def create_start_script(self):
+        if os.path.exists("./start_dog.bat"):
+            self.show_message("脚本已存在, 请勿重复创建!", level='alarm')
+        else:
+            with open("./start_dog.bat", "w", encoding='utf-8') as f:
+                f.write(f'''@echo off\nstart "" {os.path.join(os.getcwd(), 'WatchDog.exe')}''')
+            self.show_message("脚本已在当前目录创建成功,如需移动请自行修改")
+
     # QT_切换开机自启状态
     def switch_start_up(self):
         if os.path.exists(startup_path):
@@ -344,6 +354,7 @@ class WatchDogQT:
         self.ui.show_version_label.setText(f"[ 当前版本: {version_log[-1][0]} ]")
         self.ui.show_version_label.setStyleSheet("""color: #888888""")
         self.ui.autoStartUpCheckBox.setChecked(self.AUTO_START)
+        self.ui.create_start_script_button.clicked.connect(self.create_start_script)
         self.ui.FullSetupMemComboBox.addItems(MEM_UNIT_LIST)
         self.ui.FullSetupReopenComboBox.addItems(REOPEN_LIST)
         self.ui.FullSetupFlushSpin.setDecimals(1)
@@ -757,6 +768,9 @@ class WatchDogQT:
             restart = menu.addAction("重启")
             browse = menu.addAction("浏览")
             setup = menu.addAction("设置")
+            menu.addSeparator()
+            move_up = menu.addAction("上移")
+            move_down = menu.addAction("下移")
             action = menu.exec(self.ui.WatchDogList.mapToGlobal(pos))  # 显示菜单
 
             if action == use:
@@ -771,6 +785,10 @@ class WatchDogQT:
                 self.browse_selected_process()
             elif action == setup:
                 self.setup_selected_process()
+            elif action == move_up:
+                self.move_up_process()
+            elif action == move_down:
+                self.move_down_process()
 
     # QT_移除选中监听项
     def remove_listening_process(self):
@@ -825,6 +843,39 @@ class WatchDogQT:
     def setup_selected_process(self):
         process = self.get_process_by_selected()
         self.create_dialog(opt='edit', process=process)
+
+    # QT_上移选中监听项
+    def move_up_process(self):
+        process = self.get_process_by_selected()
+        process_name = os.path.basename(process.get('exe_path'))
+        meta_list = list(self.config.get('LISTENING').keys())
+        p_index = meta_list.index(process_name)
+        if p_index == 0:
+            return
+        element = meta_list.pop(p_index)
+        meta_list.insert(p_index - 1, element)
+        new_listening = {}
+        for item in meta_list:
+            new_listening[item] = self.config.get('LISTENING').get(item)
+        self.config['LISTENING'] = new_listening
+        self.save_config()
+
+    # QT_下移选中监听项
+    def move_down_process(self):
+        process = self.get_process_by_selected()
+        process_name = os.path.basename(process.get('exe_path'))
+        meta_list = list(self.config.get('LISTENING').keys())
+        p_index = meta_list.index(process_name)
+        if p_index == len(meta_list) -1:
+            return
+        element = meta_list.pop(p_index)
+        meta_list.insert(p_index + 1, element)
+        new_listening = {}
+        for item in meta_list:
+            new_listening[item] = self.config.get('LISTENING').get(item)
+        self.config['LISTENING'] = new_listening
+        self.save_config()
+
 
 def kill_process_by_name(process_name):
     """通过进程名称结束进程"""

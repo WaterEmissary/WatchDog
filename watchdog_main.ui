@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>698</width>
-    <height>335</height>
+    <width>710</width>
+    <height>334</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -26,7 +26,7 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_8">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
     <property name="leftMargin">
      <number>6</number>
     </property>
@@ -48,7 +48,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="MainPage">
        <property name="sizePolicy">
@@ -240,19 +240,7 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <property name="leftMargin">
-         <number>30</number>
-        </property>
-        <property name="topMargin">
-         <number>30</number>
-        </property>
-        <property name="rightMargin">
-         <number>30</number>
-        </property>
-        <property name="bottomMargin">
-         <number>30</number>
-        </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="5,5">
           <item>
@@ -288,12 +276,36 @@
           <item>
            <widget class="QCheckBox" name="autoStartUpCheckBox">
             <property name="text">
-             <string>开机自动启动</string>
+             <string>开机自动启动(进入桌面生效)</string>
             </property>
            </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer_7">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <item>
+           <widget class="QPushButton" name="create_start_script_button">
+            <property name="text">
+             <string>在当前目录生成启动脚本(到计划任务中配置)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_11">
             <property name="orientation">
              <enum>Qt::Orientation::Horizontal</enum>
             </property>
@@ -429,7 +441,7 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>20</width>
+            <width>17</width>
             <height>20</height>
            </size>
           </property>
@@ -478,8 +490,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>698</width>
-     <height>22</height>
+     <width>710</width>
+     <height>33</height>
     </rect>
    </property>
   </widget>
