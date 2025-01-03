@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>710</width>
-    <height>372</height>
+    <height>347</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -281,23 +281,6 @@
            </widget>
           </item>
           <item>
-           <spacer name="horizontalSpacer_7">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_9">
-          <item>
            <widget class="QPushButton" name="create_start_script_button">
             <property name="text">
              <string>在当前目录生成启动脚本(到计划任务中配置)</string>
@@ -305,7 +288,7 @@
            </widget>
           </item>
           <item>
-           <spacer name="horizontalSpacer_11">
+           <spacer name="horizontalSpacer_7">
             <property name="orientation">
              <enum>Qt::Orientation::Horizontal</enum>
             </property>
@@ -488,13 +471,6 @@
              </size>
             </property>
            </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="FullSetupSaveButton">
-            <property name="text">
-             <string>保存</string>
-            </property>
-           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="FullSetupBackMainButton">

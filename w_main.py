@@ -26,7 +26,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(710, 372)
+        MainWindow.resize(710, 347)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -185,26 +185,17 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_7.addWidget(self.autoStartUpCheckBox)
 
+        self.create_start_script_button = QPushButton(self.FullSetupPage)
+        self.create_start_script_button.setObjectName(u"create_start_script_button")
+
+        self.horizontalLayout_7.addWidget(self.create_start_script_button)
+
         self.horizontalSpacer_7 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_7.addItem(self.horizontalSpacer_7)
 
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_7)
-
-        self.horizontalLayout_9 = QHBoxLayout()
-        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
-        self.create_start_script_button = QPushButton(self.FullSetupPage)
-        self.create_start_script_button.setObjectName(u"create_start_script_button")
-
-        self.horizontalLayout_9.addWidget(self.create_start_script_button)
-
-        self.horizontalSpacer_11 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_9.addItem(self.horizontalSpacer_11)
-
-
-        self.verticalLayout_3.addLayout(self.horizontalLayout_9)
 
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
@@ -324,11 +315,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_4.addItem(self.horizontalSpacer_4)
 
-        self.FullSetupSaveButton = QPushButton(self.FullSetupPage)
-        self.FullSetupSaveButton.setObjectName(u"FullSetupSaveButton")
-
-        self.horizontalLayout_4.addWidget(self.FullSetupSaveButton)
-
         self.FullSetupBackMainButton = QPushButton(self.FullSetupPage)
         self.FullSetupBackMainButton.setObjectName(u"FullSetupBackMainButton")
 
@@ -393,7 +379,6 @@ class Ui_MainWindow(object):
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u5237\u65b0\u65f6\u95f4\u95f4\u9694(\u79d2)", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u542f\u540e\u751f\u6548", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u590d\u542f\u52a8\u770b\u95e8\u72d7", None))
-        self.FullSetupSaveButton.setText(QCoreApplication.translate("MainWindow", u"\u4fdd\u5b58", None))
         self.FullSetupBackMainButton.setText(QCoreApplication.translate("MainWindow", u"\u8fd4\u56de\u4e3b\u754c\u9762", None))
     # retranslateUi
 

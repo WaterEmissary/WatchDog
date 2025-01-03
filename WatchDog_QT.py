@@ -41,6 +41,8 @@ temp_file_path = os.path.join(tempfile.gettempdir(), ".mydog")
 startup_path = os.path.join(os.getenv("APPDATA"), r"Microsoft\Windows\Start Menu\Programs\Startup", "WatchDog.lnk")
 # 配置文件路径
 config_path = os.path.join(os.path.expanduser("~"), '.watchdog_config')
+# 配置文件读写锁
+config_lock = threading.Lock()
 
 version_log = [['v1.1', '正式版'],
                ['v1.2', '修改关闭按钮为缩小而不是退出'],
@@ -50,7 +52,8 @@ version_log = [['v1.1', '正式版'],
                ['v1.5', '添加了移除前询问功能'], ['v1.6', "添加重复打开相关功能, 添加单进程右键菜单"],
                ['v1.7', '修复了在某些情况下无法正常拉起进程的bug'],
                ['v1.8', '添加了排序功能, 添加了自动创建启动脚本功能'],
-               ['v1.9', '更改启动功能到WMI中, 添加了对powershell支持']]
+               ['v1.9', '更改启动功能到WMI中, 添加了对powershell支持'],
+               ['v1.91', '添加了复制启动命令的功能, 修改了保存逻辑']]
 
 # WMI控制程序
 class WMI:
@@ -171,72 +174,77 @@ class WMI:
 
     # 启动进程任务流
     def start_process(self, process):
-        def thread_run():
+        def thread_run(command, args):
             self.execution = True
             if self.qt.config.get('START_WAY') == 0:
-                self._start_process(process)
+                self._start_process(command, args)
             elif self.qt.config.get('START_WAY') == 1:
-                self._start_process_powershell(process)
+                self._start_process_powershell(command, args)
             time.sleep(3)
             self.execution = False
 
+        command, args = self._create_command(process, self.qt.config.get('START_WAY'))
         if self.execution is True:
             return
-        threading.Thread(target=thread_run).start()
+        threading.Thread(target=thread_run, args=(command, args,)).start()
+
+    # 创建启动命令
+    def _create_command(self, process, way):
+        if way == 0:
+            exe_path = process.get('exe_path')
+            work_dir = process.get('work_dir')
+            if not work_dir:
+                work_dir = None
+            arguments = process.get('arguments')
+            hidden = process.get('hidden')
+
+            program_command = f'"{exe_path}" {arguments}'
+            command = f'cmd.exe /c start {"/b " if hidden else ""} "" {program_command}'
+            print(command)
+            return command, work_dir
+        elif way == 1:
+            exe_path = process.get('exe_path')
+            work_dir = process.get('work_dir')
+            if not work_dir:
+                work_dir = None
+            arguments = process.get('arguments')
+            hidden = process.get('hidden')
+
+            # 使用 shlex.quote() 安全地转义参数，防止命令注入
+            quoted_exe_path = shlex.quote(exe_path)
+
+            # 构建 PowerShell 命令
+            powershell_command = [
+                "Start-Process",
+                "-FilePath", quoted_exe_path,
+            ]
+            # 如果有参数,再传参数
+            if arguments:
+                arguments_list = arguments.split()
+                powershell_command.append("-ArgumentList")
+                arg_str = ','.join(f"'{a}'" for a in arguments_list)
+                powershell_command.append(f"@({arg_str})")
+
+            if work_dir:
+                powershell_command.extend(["-WorkingDirectory", shlex.quote(work_dir)])
+
+            if hidden:
+                powershell_command.extend(["-WindowStyle", "Hidden"])
+
+            command_arg = " ".join(powershell_command)
+            command = f'powershell.exe -NoProfile -Command "{command_arg}"'
+            print(command)  # 打印最终执行的命令，方便调试
+            return command, hidden
 
     # 启动进程
-    def _start_process(self, process):
-        exe_path = process.get('exe_path')
-        work_dir = process.get('work_dir')
-        if not work_dir:
-            work_dir = None
-        arguments = process.get('arguments')
-        hidden = process.get('hidden')
-
-        program_command = f'"{exe_path}" {arguments}'
-        command = f'cmd.exe /c start {"/b " if hidden else ""} "" {program_command}'
-        print(command)
+    def _start_process(self, command, work_dir):
         subprocess.Popen(command, shell=True, cwd=work_dir)
 
     # 使用powershell启动
-    def _start_process_powershell(self, process):
+    def _start_process_powershell(self, command, hidden):
         """使用 PowerShell 启动进程，可控制是否隐藏窗口。"""
-
-        exe_path = process.get('exe_path')
-        work_dir = process.get('work_dir')
-        if not work_dir:
-            work_dir = None
-        arguments = process.get('arguments')
-        hidden = process.get('hidden')
-
-        # 使用 shlex.quote() 安全地转义参数，防止命令注入
-        quoted_exe_path = shlex.quote(exe_path)
-
-
-        # 构建 PowerShell 命令
-        powershell_command = [
-            "powershell.exe",
-            "-NoProfile",  # 可选：不加载 PowerShell 配置文件，提高启动速度
-            "-Command",
-            "Start-Process",
-            "-FilePath", quoted_exe_path,
-        ]
-        # 如果有参数,再传参数
-        if arguments:
-            quoted_arguments = " ".join(shlex.quote(arg) for arg in shlex.split(arguments))
-            powershell_command.append("-ArgumentList")
-            powershell_command.append(quoted_arguments)
-
-        if work_dir:
-            powershell_command.extend(["-WorkingDirectory", shlex.quote(work_dir)])
-
-        if hidden:
-            powershell_command.extend(["-WindowStyle", "Hidden"])
-
-        command = " ".join(powershell_command)
-        print(command)  # 打印最终执行的命令，方便调试
         try:
-            subprocess.Popen(powershell_command,
+            subprocess.Popen(command,
                              creationflags=subprocess.CREATE_NO_WINDOW if hidden else 0)  # powershell本身窗口也隐藏
         except FileNotFoundError:
             print(f"Error: PowerShell not found.")
@@ -270,7 +278,8 @@ class WMI:
             self.execution = True
             self._stop_process(process)
             time.sleep(1.5)
-            self._start_process(process)
+            self.execution = False
+            self.start_process(process)
             time.sleep(3)
             self.execution = False
 
@@ -467,7 +476,6 @@ class WatchDogQT:
         self.ui.FullSetupMemComboBox.currentIndexChanged.connect(self.setup_switch_mem_unit)
         self.ui.FullSetupReopenComboBox.currentIndexChanged.connect(self.setup_switch_reopen)
         self.ui.FullSetupFlushSpin.valueChanged.connect(self.setup_flush_spin)
-        self.ui.FullSetupSaveButton.clicked.connect(self.save_config)
         self.ui.FullSetupBackMainButton.clicked.connect(lambda : self.switch_page(0))
 
     # 功能初始化
@@ -475,8 +483,6 @@ class WatchDogQT:
         self.auto_check_config()
         # 读取配置
         self.load_config()
-        # 自动升级配置
-        self.update_config()
         # 初始化表格
         self.create_table_row()
 
@@ -550,8 +556,9 @@ class WatchDogQT:
     def load_config(self):
         self.init_config()
         try:
-            with open(config_path, 'rb') as f:
-                self.config = pickle.load(f)
+            with config_lock:
+                with open(config_path, 'rb') as f:
+                    self.config = pickle.load(f)
         except:
             os.remove(config_path)
             self.init_config()
@@ -561,41 +568,37 @@ class WatchDogQT:
     # 设置_保存配置到本地
     def save_config(self):
         self.init_config()
-        with open(config_path, 'wb') as f:
-            pickle.dump(self.config, f)
+        with config_lock:
+            with open(config_path, 'wb') as f:
+                pickle.dump(self.config, f)
         self.show_message("保存成功")
+        print(f"save_config: {self.config}")
 
-    # 功能_自动升级配置文件
-    def update_config(self):
-        updated = False
-        for k, v in DEFAULT_CONFIG.items():
-            if k not in self.config.keys():
-                updated = True
-                self.config[k] = v
-        if updated:
-            self.save_config()
-        else:
-            pass
 
     # 设置_自动隐藏复选框
     def setup_auto_hidden_checkbox(self, toggled):
         self.config['AUTO_HIDDEN'] = toggled
+        self.save_config()
 
     # 设置_更换启动方式
     def setup_start_way(self, index):
         self.config['START_WAY'] = index
+        self.save_config()
 
     # 设置_更换内存全局单位
     def setup_switch_mem_unit(self, index):
         self.config['MEM_UNIT'] = index
+        self.save_config()
 
     # 设置_更换启动选项
     def setup_switch_reopen(self, index):
         self.config['REOPEN_OPT'] = index
+        self.save_config()
 
     # 设置_刷新时间间隔
     def setup_flush_spin(self, value):
         self.config['FLUSH_TIME'] = float(value)
+        self.save_config()
 
     # QT_禁用所有进程按钮
     def disabled_process_button(self):
@@ -885,15 +888,17 @@ class WatchDogQT:
             label_action.setDefaultWidget(label)
             menu.addAction(label_action)
             menu.addSeparator()
+            switch = menu.addAction("停止" if process.get('run_status') else "启动")
+            restart = menu.addAction("重启")
+            menu.addSeparator()
             if process.get('use_listen'):
                 use = menu.addAction("禁用看门狗")
             else:
                 use = menu.addAction("启用看门狗")
             remove = menu.addAction("移除")
-            switch = menu.addAction("停止" if process.get('run_status') else "启动")
-            restart = menu.addAction("重启")
             browse = menu.addAction("浏览")
             setup = menu.addAction("设置")
+            copy_command = menu.addAction("复制启动命令")
             menu.addSeparator()
             move_up = menu.addAction("上移")
             move_down = menu.addAction("下移")
@@ -915,6 +920,8 @@ class WatchDogQT:
                 self.move_up_process()
             elif action == move_down:
                 self.move_down_process()
+            elif action == copy_command:
+                self.get_start_command()
 
     # QT_移除选中监听项
     def remove_listening_process(self):
@@ -1001,6 +1008,19 @@ class WatchDogQT:
             new_listening[item] = self.config.get('LISTENING').get(item)
         self.config['LISTENING'] = new_listening
         self.save_config()
+
+    # QT_获取启动命令
+    def get_start_command(self):
+        process = self.get_process_by_selected()
+        command, args = self.wmi._create_command(process, self.config.get('START_WAY'))
+        self.copy_to_clipboard(command)
+
+
+    # QT_复制到剪切板
+    def copy_to_clipboard(self, msg):
+        clipboard = self.app.clipboard()
+        clipboard.setText(msg)
+        self.show_message("复制成功")  # 提示用户
 
 
 def kill_process_by_name(process_name):
