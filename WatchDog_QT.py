@@ -3,10 +3,12 @@ import sys
 import time
 import shlex
 import signal
+import shutil
 import psutil
 import pickle
 import tempfile
 import pythoncom
+import webbrowser
 import threading
 import subprocess
 import win32com.client
@@ -29,7 +31,8 @@ DEFAULT_CONFIG = {
     'FLUSH_TIME': 0.5,
     'LISTENING': {},
     'REOPEN_OPT': 1,
-    'START_WAY': 1
+    'START_WAY': 1,
+    'FRPC_PATH': ''
 }
 MEM_UNIT_LIST = ['MB', 'GB']
 REOPEN_LIST = ['无操作', '重启软件']
@@ -53,7 +56,9 @@ version_log = [['v1.1', '正式版'],
                ['v1.7', '修复了在某些情况下无法正常拉起进程的bug'],
                ['v1.8', '添加了排序功能, 添加了自动创建启动脚本功能'],
                ['v1.9', '更改启动功能到WMI中, 添加了对powershell支持'],
-               ['v1.91', '添加了复制启动命令的功能, 修改了保存逻辑']]
+               ['v1.91', '添加了复制启动命令的功能, 修改了保存逻辑'],
+               ['v1.10.1', '每次启动前都会清除win32com的缓存文件'],
+               ['v1.11.0', '添加了frpc编辑、启动服务页功能, 修复了移除时名字显示错误的问题']]
 
 # WMI控制程序
 class WMI:
@@ -115,6 +120,7 @@ class WMI:
                     work_dir=info.get('work_dir'),
                     arguments=info.get('arguments'),
                     hidden=info.get('hidden'),
+                    url=info.get('url'),
                     run_status=False,
                     pid='--',
                     name='--',
@@ -445,6 +451,7 @@ class WatchDogQT:
         self.ui.UseButton.clicked.connect(self.switch_selected_listening_process)
         self.ui.SwitchButton.clicked.connect(self.switch_selected_process)
         self.ui.RemoveButton.clicked.connect(self.remove_listening_process)
+        self.ui.ServerUrlButton.clicked.connect(self.server_url_listening_process)
         self.ui.RestartButton.clicked.connect(self.restart_selected_process)
         self.ui.BrowseButton.clicked.connect(self.browse_selected_process)
         self.ui.ProcessSetupButton.clicked.connect(self.setup_selected_process)
@@ -452,10 +459,12 @@ class WatchDogQT:
         # 添加菜单Action
         self.ui.addProcessAction = QAction("添加检测进程")
         self.ui.FullSetupAction = QAction("全局设置")
-        self.ui.menubar.addActions([self.ui.addProcessAction, self.ui.FullSetupAction])
+        self.ui.extendAction = QAction("扩展功能")
+        self.ui.menubar.addActions([self.ui.addProcessAction, self.ui.FullSetupAction, self.ui.extendAction])
 
         self.ui.addProcessAction.triggered.connect(lambda :self.create_dialog(opt='add', process=None))
         self.ui.FullSetupAction.triggered.connect(lambda : self.switch_page(1))
+        self.ui.extendAction.triggered.connect(self.show_extend_menu)
 
         # 全局设置界面
         self.ui.show_version_label.setText(f"[ 当前版本: {version_log[-1][0]} ]")
@@ -476,6 +485,10 @@ class WatchDogQT:
         self.ui.FullSetupMemComboBox.currentIndexChanged.connect(self.setup_switch_mem_unit)
         self.ui.FullSetupReopenComboBox.currentIndexChanged.connect(self.setup_switch_reopen)
         self.ui.FullSetupFlushSpin.valueChanged.connect(self.setup_flush_spin)
+
+        self.ui.frpc_path_button.clicked.connect(self.setup_frpc_path)
+        self.ui.frpc_clear_button.clicked.connect(self.clear_frpc_path)
+
         self.ui.FullSetupBackMainButton.clicked.connect(lambda : self.switch_page(0))
 
     # 功能初始化
@@ -600,6 +613,46 @@ class WatchDogQT:
         self.config['FLUSH_TIME'] = float(value)
         self.save_config()
 
+    # 设置_浏览frpc.toml位置
+    def setup_frpc_path(self):
+        file_path, _ = QFileDialog.getOpenFileName(self.win, "选择文件", "", "frp配置文件 (*.toml)")
+        if file_path:
+            self.ui.frpc_path_line_edit.setText(file_path)
+            self.config['FRPC_PATH'] = file_path
+            self.save_config()
+
+    # 设置_清空frpc.toml位置
+    def clear_frpc_path(self):
+        self.config['FRPC_PATH'] = ""
+        self.save_config()
+        self.ui.frpc_path_line_edit.setText("")
+
+    # 扩展功能_显示扩展功能菜单栏
+    def show_extend_menu(self, pos):
+        menu = QMenu()
+
+        # 添加菜单动作
+        frps_edit = menu.addAction("Frpc编辑")
+        frps_edit.triggered.connect(self.edit_frpc_config)
+
+        # 在 extendAction 的位置弹出菜单
+        # 获取触发动作的控件的全局位置
+        global_pos = self.ui.menubar.mapToGlobal(self.ui.menubar.actionGeometry(self.ui.extendAction).bottomRight())
+
+        # 在全局位置显示菜单
+        menu.exec(global_pos)
+
+    # 扩展功能_编辑frpc.toml
+    def edit_frpc_config(self):
+        if self.config.get('FRPC_PATH') == '':
+            QMessageBox.information(self.win, '提示', '未配置frpc.toml位置, 请进行配置')
+            self.switch_page(1)
+        else:
+            try:
+                os.startfile(self.config.get('FRPC_PATH'))
+            except Exception as e:
+                QMessageBox.warning(self.win, '提示', 'frpc.toml打开失败, 请检查配置是否正确')
+
     # QT_禁用所有进程按钮
     def disabled_process_button(self):
         self.ui.UseButton.setEnabled(False)
@@ -627,6 +680,7 @@ class WatchDogQT:
         self.ui.RestartButton.setEnabled(True)
         self.ui.BrowseButton.setEnabled(True)
         self.ui.ProcessSetupButton.setEnabled(True)
+
     # QT_获取颜色
     @staticmethod
     def get_health_color(value: float) -> str:
@@ -753,6 +807,7 @@ class WatchDogQT:
             self.ui.FullSetupMemComboBox.setCurrentIndex(self.config.get('MEM_UNIT'))
             self.ui.FullSetupReopenComboBox.setCurrentIndex(self.config.get('REOPEN_OPT'))
             self.ui.FullSetupFlushSpin.setValue(self.config.get('FLUSH_TIME'))
+            self.ui.frpc_path_line_edit.setText(self.config.get('FRPC_PATH'))
         self.ui.stackedWidget.setCurrentIndex(page)
 
     # QT_初始化表格内容
@@ -820,6 +875,8 @@ class WatchDogQT:
             work_dir = instance.dialog_ui.WorkDirEdit.text()
             arguments = instance.dialog_ui.ArgumentsEdit.text()
             hidden = instance.dialog_ui.HiddenCheckBox.isChecked()
+            url = instance.dialog_ui.UrlServiceEdit.text()
+
             if not other_name:
                 instance.show_message("请输入别名", level='alarm')
                 return
@@ -833,7 +890,8 @@ class WatchDogQT:
                                                                                     exe_path=exe_path,
                                                                                     work_dir=work_dir,
                                                                                     arguments=arguments,
-                                                                                    hidden=hidden)
+                                                                                    hidden=hidden,
+                                                                                    url=url)
                     close_dialog(instance)
                 else:
                     instance.show_message(f"{os.path.basename(exe_path)} 已存在", level='alarm')
@@ -845,6 +903,7 @@ class WatchDogQT:
                 _process['work_dir'] = work_dir
                 _process['arguments'] = arguments
                 _process['hidden'] = hidden
+                _process['url'] = url
                 self.config['LISTENING'][os.path.basename(exe_path)] = _process
                 self.save_config()
                 close_dialog(instance)
@@ -861,9 +920,12 @@ class WatchDogQT:
         self.dialog_ui.ExePathEdit.setReadOnly(True)
         self.dialog_ui.WorkDirEdit.setReadOnly(True)
 
-        self.dialog.setFixedSize(390, 260)
+
+
+        # self.dialog.setFixedSize(390, 260)
         if opt == 'add':
             self.dialog.setWindowTitle("添加监听项")
+            self.dialog_ui.UrlServiceEdit.setText('http://127.0.0.1:80')
         elif opt == 'edit':
             self.dialog.setWindowTitle("修改监听项")
             self.dialog_ui.exe_label.setText("可执行文件路径(不可修改)")
@@ -873,6 +935,7 @@ class WatchDogQT:
             self.dialog_ui.WorkDirEdit.setText(process.get('work_dir'))
             self.dialog_ui.ArgumentsEdit.setText(process.get('arguments'))
             self.dialog_ui.HiddenCheckBox.setChecked(process.get('hidden'))
+            self.dialog_ui.UrlServiceEdit.setText(process.get('url'))
         self.dialog_ui.CancelButton.clicked.connect(lambda: close_dialog(self))
         self.dialog.exec()
 
@@ -890,6 +953,7 @@ class WatchDogQT:
             menu.addSeparator()
             switch = menu.addAction("停止" if process.get('run_status') else "启动")
             restart = menu.addAction("重启")
+            start_url = menu.addAction("打开服务页")
             menu.addSeparator()
             if process.get('use_listen'):
                 use = menu.addAction("禁用看门狗")
@@ -908,6 +972,8 @@ class WatchDogQT:
                 self.switch_selected_listening_process()
             elif action == remove:
                 self.remove_listening_process()
+            elif action == start_url:
+                self.server_url_listening_process()
             elif action == switch:
                 self.switch_selected_process()
             elif action == restart:
@@ -930,7 +996,7 @@ class WatchDogQT:
 
         msg_box = QMessageBox()
         msg_box.setWindowTitle("移除监听项")
-        msg_box.setText(f"你确定要移除 {listening.get(list(listening.keys())[0]).get('other_name')} 吗")
+        msg_box.setText(f"你确定要移除 {listening.get(list(listening.keys())[row]).get('other_name')} 吗")
         msg_box.setIcon(QMessageBox.Question)
         msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         msg_box.setDefaultButton(QMessageBox.No)
@@ -944,6 +1010,11 @@ class WatchDogQT:
             self.create_table_row()
         elif user_choice == QMessageBox.No:
             pass
+
+    # QT_打开服务页面
+    def server_url_listening_process(self):
+        process = self.get_process_by_selected()
+        self.start_url(process.get('url', 'http://127.0.0.1:80'))
 
     # QT_启用/禁用选中进程的监听
     def switch_selected_listening_process(self):
@@ -1015,13 +1086,18 @@ class WatchDogQT:
         command, args = self.wmi._create_command(process, self.config.get('START_WAY'))
         self.copy_to_clipboard(command)
 
-
     # QT_复制到剪切板
     def copy_to_clipboard(self, msg):
         clipboard = self.app.clipboard()
         clipboard.setText(msg)
         self.show_message("复制成功")  # 提示用户
 
+    # QT_打开服务页
+    def start_url(self, url):
+        try:
+            webbrowser.open(url)
+        except webbrowser.Error as e:
+            self.show_message(f"打开 URL 时出错: {e}", level='alarm')
 
 def kill_process_by_name(process_name):
     """通过进程名称结束进程"""
@@ -1039,8 +1115,24 @@ def kill_process_by_name(process_name):
     print(f"未找到名为 {process_name} 的进程")
     return False
 
+# 清除win32com缓存
+def clear_gencache():
+    """
+    清除 win32com gencache 缓存文件夹
+    """
+    cache_dir = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Temp", "gen_py")
+    if os.path.exists(cache_dir):
+        print(f"发现缓存文件夹: {cache_dir}")
+        try:
+            shutil.rmtree(cache_dir)  # 删除整个缓存文件夹
+            print("已清除 gencache 缓存。")
+        except Exception as e:
+            print(f"清除缓存时出错: {e}")
+    else:
+        print("未找到 gencache 缓存文件夹。")
 
 if __name__ == '__main__':
+    clear_gencache()
     if os.path.exists(temp_file_path):
         try:    # 如果文件存在, 尝试删除, 删除成功则说明软件未运行, 启动
             fd = os.open(temp_file_path, os.O_RDWR | os.O_EXCL)

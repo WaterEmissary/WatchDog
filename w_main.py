@@ -17,16 +17,16 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
-    QHBoxLayout, QHeaderView, QLabel, QMainWindow,
-    QMenuBar, QPushButton, QSizePolicy, QSpacerItem,
-    QStackedWidget, QStatusBar, QTableWidget, QTableWidgetItem,
-    QVBoxLayout, QWidget)
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QMainWindow, QMenuBar, QPushButton, QSizePolicy,
+    QSpacerItem, QStackedWidget, QStatusBar, QTableWidget,
+    QTableWidgetItem, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(710, 347)
+        MainWindow.resize(828, 344)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -116,6 +116,11 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.RemoveButton)
 
+        self.ServerUrlButton = QPushButton(self.MainPage)
+        self.ServerUrlButton.setObjectName(u"ServerUrlButton")
+
+        self.horizontalLayout.addWidget(self.ServerUrlButton)
+
         self.horizontalSpacer_9 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer_9)
@@ -142,9 +147,9 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.setStretch(3, 10)
         self.horizontalLayout.setStretch(5, 1)
-        self.horizontalLayout.setStretch(8, 1)
         self.horizontalLayout.setStretch(9, 1)
-        self.horizontalLayout.setStretch(11, 1)
+        self.horizontalLayout.setStretch(10, 1)
+        self.horizontalLayout.setStretch(12, 1)
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
@@ -156,7 +161,9 @@ class Ui_MainWindow(object):
         self.FullSetupPage.setObjectName(u"FullSetupPage")
         sizePolicy.setHeightForWidth(self.FullSetupPage.sizePolicy().hasHeightForWidth())
         self.FullSetupPage.setSizePolicy(sizePolicy)
-        self.verticalLayout_3 = QVBoxLayout(self.FullSetupPage)
+        self.horizontalLayout_12 = QHBoxLayout(self.FullSetupPage)
+        self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
+        self.verticalLayout_3 = QVBoxLayout()
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.horizontalLayout_6 = QHBoxLayout()
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
@@ -305,6 +312,45 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_10)
 
+        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.verticalLayout_3.addItem(self.verticalSpacer_2)
+
+        self.horizontalLayout_9 = QHBoxLayout()
+        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
+        self.label_6 = QLabel(self.FullSetupPage)
+        self.label_6.setObjectName(u"label_6")
+
+        self.horizontalLayout_9.addWidget(self.label_6)
+
+        self.frpc_path_line_edit = QLineEdit(self.FullSetupPage)
+        self.frpc_path_line_edit.setObjectName(u"frpc_path_line_edit")
+        self.frpc_path_line_edit.setEnabled(False)
+
+        self.horizontalLayout_9.addWidget(self.frpc_path_line_edit)
+
+        self.frpc_path_button = QPushButton(self.FullSetupPage)
+        self.frpc_path_button.setObjectName(u"frpc_path_button")
+
+        self.horizontalLayout_9.addWidget(self.frpc_path_button)
+
+        self.frpc_clear_button = QPushButton(self.FullSetupPage)
+        self.frpc_clear_button.setObjectName(u"frpc_clear_button")
+
+        self.horizontalLayout_9.addWidget(self.frpc_clear_button)
+
+        self.horizontalSpacer_11 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_9.addItem(self.horizontalSpacer_11)
+
+        self.horizontalLayout_9.setStretch(0, 1)
+        self.horizontalLayout_9.setStretch(1, 6)
+        self.horizontalLayout_9.setStretch(2, 1)
+        self.horizontalLayout_9.setStretch(3, 1)
+        self.horizontalLayout_9.setStretch(4, 3)
+
+        self.verticalLayout_3.addLayout(self.horizontalLayout_9)
+
         self.verticalSpacer = QSpacerItem(17, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_3.addItem(self.verticalSpacer)
@@ -323,6 +369,9 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
 
+
+        self.horizontalLayout_12.addLayout(self.verticalLayout_3)
+
         self.stackedWidget.addWidget(self.FullSetupPage)
 
         self.horizontalLayout_11.addWidget(self.stackedWidget)
@@ -333,12 +382,12 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 710, 22))
+        self.menubar.setGeometry(QRect(0, 0, 828, 22))
         MainWindow.setMenuBar(self.menubar)
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -366,6 +415,7 @@ class Ui_MainWindow(object):
         self.MEMusageLabel.setText(QCoreApplication.translate("MainWindow", u"[\u5185\u5b58]: 00.00%", None))
         self.UseButton.setText(QCoreApplication.translate("MainWindow", u"\u542f\u7528\u770b\u95e8\u72d7", None))
         self.RemoveButton.setText(QCoreApplication.translate("MainWindow", u"\u79fb\u9664", None))
+        self.ServerUrlButton.setText(QCoreApplication.translate("MainWindow", u"\u670d\u52a1\u9875\u9762", None))
         self.SwitchButton.setText(QCoreApplication.translate("MainWindow", u"\u542f\u52a8/\u505c\u6b62", None))
         self.RestartButton.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u542f", None))
         self.BrowseButton.setText(QCoreApplication.translate("MainWindow", u"\u6d4f\u89c8", None))
@@ -379,6 +429,9 @@ class Ui_MainWindow(object):
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u5237\u65b0\u65f6\u95f4\u95f4\u9694(\u79d2)", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u542f\u540e\u751f\u6548", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u590d\u542f\u52a8\u770b\u95e8\u72d7", None))
+        self.label_6.setText(QCoreApplication.translate("MainWindow", u"frpc.toml\u8def\u5f84", None))
+        self.frpc_path_button.setText(QCoreApplication.translate("MainWindow", u"\u6d4f\u89c8", None))
+        self.frpc_clear_button.setText(QCoreApplication.translate("MainWindow", u"\u6e05\u9664", None))
         self.FullSetupBackMainButton.setText(QCoreApplication.translate("MainWindow", u"\u8fd4\u56de\u4e3b\u754c\u9762", None))
     # retranslateUi
 
