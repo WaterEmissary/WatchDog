@@ -544,7 +544,6 @@ class WatchDogQT:
     # 设置_初始化配置文件
     @staticmethod
     def init_config():
-        cwd = os.getcwd()
         # 如果配置文件不存在, 创建
         if not os.path.exists(config_path):
             with open(config_path, 'wb') as f:
@@ -582,8 +581,16 @@ class WatchDogQT:
     def save_config(self):
         self.init_config()
         with config_lock:
-            with open(config_path, 'wb') as f:
-                pickle.dump(self.config, f)
+            try:
+                temp_file = tempfile.NamedTemporaryFile(mode='wb', delete=False)
+                with temp_file as tf:
+                    pickle.dump(self.config, tf)
+                shutil.move(temp_file.name, config_path)
+            except Exception as e:
+                self.show_message(f"保存配置出错{str(e)}", level='alarm')
+            finally:
+                if os.path.exists(temp_file.name):
+                    os.remove(temp_file.name)
         self.show_message("保存成功")
         print(f"save_config: {self.config}")
 
@@ -624,8 +631,8 @@ class WatchDogQT:
     # 设置_清空frpc.toml位置
     def clear_frpc_path(self):
         self.config['FRPC_PATH'] = ""
-        self.save_config()
         self.ui.frpc_path_line_edit.setText("")
+        self.save_config()
 
     # 扩展功能_显示扩展功能菜单栏
     def show_extend_menu(self, pos):
